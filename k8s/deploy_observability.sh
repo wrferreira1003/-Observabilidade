@@ -8,6 +8,13 @@ kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f 
 
 echo "📂 Aplicando os manifests de configuração..."
 
+# Atualizando ConfigMap do Loki
+echo "📂 Atualizando ConfigMap do Loki..."
+kubectl delete configmap loki-config -n $NAMESPACE --ignore-not-found
+kubectl create configmap loki-config --from-file=loki/loki-config.yaml -n $NAMESPACE
+kubectl create configmap otel-config --from-file=otel/config.yaml -n $NAMESPACE
+
+
 # Aplicando os ConfigMaps
 kubectl apply -f otel/otel-configmap.yaml -n $NAMESPACE
 kubectl apply -f prometheus/prometheus-configmap.yaml -n $NAMESPACE
@@ -31,8 +38,8 @@ kubectl apply -f loki/loki-service.yaml -n $NAMESPACE
 kubectl apply -f grafana/grafana-service.yaml -n $NAMESPACE
 
 # Criando volumes persistentes
-# kubectl apply -f grafana/grafana-pvc.yaml -n $NAMESPACE # em producao usa o pvc
-kubectl apply -f grafana/grafana-pv.yaml -n $NAMESPACE
+kubectl apply -f grafana/grafana-pvc.yaml -n $NAMESPACE # em producao usa o pvc
+#kubectl apply -f grafana/grafana-pv.yaml -n $NAMESPACE
 
 echo "✅ Stack de observabilidade implantada com sucesso!"
 

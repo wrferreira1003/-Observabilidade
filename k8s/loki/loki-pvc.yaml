@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: grafana-pvc
+  name: loki-pvc
   namespace: observability
 spec:
   accessModes:
@@ -9,4 +9,3 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: do-block-storage

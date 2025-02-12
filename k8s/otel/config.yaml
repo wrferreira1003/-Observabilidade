@@ -1,0 +1,32 @@
+#Receivers são os componentes responsáveis por receber os dados de telemetria que suas aplicações instrumentadas enviam.
+receivers:
+  otlp:
+    protocols:
+      grpc:       # Chave correta: "grpc"
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+
+#Processors são componentes que processam ou transformam os dados entre o recebimento e a exportação.
+processors:
+  batch: {}          # Processador em lote padrão
+
+# Exporters são os componentes que enviam os dados processados para os destinos finais, como sistemas de visualização, bancos de dados de métricas ou backends de traces.
+exporters:
+  debug: {}        # Exportador para depuração, sem parâmetros
+  zipkin: #Exportado que envia os dados para o Jaeger
+    endpoint: "http://zipkin:9411/api/v2/spans"  # Envia os spans no formato Zipkin para o Jaeger
+  prometheus: #Exportado que envia os dados para o Prometheus
+    endpoint: "0.0.0.0:8889"   # Exposição das métricas para o Prometheus
+
+#Essa seção define como os componentes (receivers, processors e exporters) se conectam em pipelines.
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [zipkin, debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus, debug]
