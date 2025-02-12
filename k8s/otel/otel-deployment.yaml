@@ -18,11 +18,11 @@ spec:
           args: ["--config=/etc/otel/config.yaml"]
           resources:
             requests:
-              memory: "64Mi"
-              cpu: "50m"
+              memory: "48Mi"
+              cpu: "40m"
             limits:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: "96Mi"
+              cpu: "80m"
           volumeMounts:
             - name: otel-config
               mountPath: /etc/otel
