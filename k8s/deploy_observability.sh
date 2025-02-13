@@ -6,25 +6,35 @@ NAMESPACE=observability
 echo "🚀 Criando o namespace '$NAMESPACE'..."
 kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
-echo "📂 Aplicando os manifests de configuração..."
+echo "📂 Removendo recursos antigos para evitar conflitos..."
 
-# Atualizando ConfigMap do Loki
-echo "📂 Atualizando ConfigMap do Loki..."
+# Remover pods antigos para evitar falhas na reimplantação
+kubectl delete pod -n $NAMESPACE --all --grace-period=0 --force --ignore-not-found
+
+# Removendo os ConfigMaps antigos antes de criar novos
+echo "📂 Removendo ConfigMaps antigos..."
 kubectl delete configmap loki-config -n $NAMESPACE --ignore-not-found
-kubectl create configmap loki-config --from-file=loki/loki-config.yaml -n $NAMESPACE
-kubectl create configmap otel-config --from-file=otel/config.yaml -n $NAMESPACE
+kubectl delete configmap otel-config -n $NAMESPACE --ignore-not-found
+kubectl delete configmap prometheus-config -n $NAMESPACE --ignore-not-found
+kubectl delete configmap grafana-config -n $NAMESPACE --ignore-not-found
+kubectl delete configmap promtail-config -n $NAMESPACE --ignore-not-found
 
-
-# Aplicando os ConfigMaps
+echo "📂 Atualizando ConfigMaps..."
+kubectl apply -f loki/loki-configmap.yaml -n $NAMESPACE
 kubectl apply -f otel/otel-configmap.yaml -n $NAMESPACE
 kubectl apply -f prometheus/prometheus-configmap.yaml -n $NAMESPACE
-kubectl apply -f loki/loki-configmap.yaml -n $NAMESPACE
-kubectl apply -f promtail/promtail-configmap.yaml -n $NAMESPACE
 kubectl apply -f grafana/grafana-configmap.yaml -n $NAMESPACE
+kubectl apply -f promtail/promtail-configmap.yaml -n $NAMESPACE
 
-echo "🚢 Implantando os serviços..."
+echo "📂 Criando volumes persistentes..."
+kubectl apply -f grafana/grafana-pvc.yaml -n $NAMESPACE
+kubectl apply -f loki/loki-pvc.yaml -n $NAMESPACE
 
-# Aplicando Deployments e DaemonSets
+echo "🚢 Removendo Deployments antigos..."
+kubectl delete deployment otel-collector loki prometheus grafana -n $NAMESPACE --ignore-not-found
+kubectl delete daemonset promtail -n $NAMESPACE --ignore-not-found
+
+echo "🚢 Implantando novos serviços..."
 kubectl apply -f otel/otel-deployment.yaml -n $NAMESPACE
 kubectl apply -f prometheus/prometheus-deployment.yaml -n $NAMESPACE
 kubectl apply -f loki/loki-deployment.yaml -n $NAMESPACE
@@ -37,10 +47,6 @@ kubectl apply -f prometheus/prometheus-service.yaml -n $NAMESPACE
 kubectl apply -f loki/loki-service.yaml -n $NAMESPACE
 kubectl apply -f grafana/grafana-service.yaml -n $NAMESPACE
 
-# Criando volumes persistentes
-kubectl apply -f grafana/grafana-pvc.yaml -n $NAMESPACE # em producao usa o pvc
-#kubectl apply -f grafana/grafana-pv.yaml -n $NAMESPACE
-
 echo "✅ Stack de observabilidade implantada com sucesso!"
 
 echo "⌛ Aguardando os pods iniciarem..."
@@ -50,3 +56,5 @@ echo "🌍 Serviços disponíveis:"
 kubectl get svc -n $NAMESPACE
 
 echo "🎯 Para acessar o Grafana, use: kubectl port-forward svc/grafana 3000:3000 -n $NAMESPACE"
+
+

@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: promtail
+  namespace: observability
 spec:
   selector:
     matchLabels:
@@ -14,12 +15,13 @@ spec:
       containers:
         - name: promtail
           image: grafana/promtail:latest
-          args: ["-config.file=/etc/promtail/promtail.yaml"]
+          args: ["-config.file=/etc/promtail/promtail.yaml"]  # 🔹 Caminho ajustado para ser compatível com o ConfigMap
           volumeMounts:
             - name: logs
               mountPath: /var/log
             - name: promtail-config
-              mountPath: /etc/promtail
+              mountPath: /etc/promtail/promtail.yaml
+              subPath: promtail.yaml   # 🔹 Agora está correto
       volumes:
         - name: logs
           hostPath:
@@ -27,4 +29,7 @@ spec:
         - name: promtail-config
           configMap:
             name: promtail-config
+
+
+
 

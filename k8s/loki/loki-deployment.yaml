@@ -20,16 +20,18 @@ spec:
           volumeMounts:
             - name: loki-storage
               mountPath: /var/loki
+              subPath: loki-config.yaml #Monta o arquivo de configuração do Loki
             - name: loki-storage
               mountPath: /wal
 
       containers:
         - name: loki
           image: grafana/loki:latest
-          args: ["-config.file=/etc/loki/loki.yaml"]
+          args: ["-config.file=/etc/loki/loki-config.yaml"]
           volumeMounts:
             - name: loki-config
-              mountPath: /etc/loki
+              mountPath: /etc/loki/loki-config.yaml
+              subPath: loki-config.yaml #Monta o arquivo de configuração do Loki
             - name: loki-storage
               mountPath: /var/loki
             - name: loki-storage
@@ -45,9 +47,6 @@ spec:
         - name: loki-config
           configMap:
             name: loki-config
-            items:
-              - key: loki.yaml
-                path: loki.yaml
         - name: loki-storage
           persistentVolumeClaim:
             claimName: loki-pvc

@@ -27,7 +27,8 @@ spec:
             - containerPort: 3000
           volumeMounts:
             - name: grafana-config
-              mountPath: /etc/grafana
+              mountPath: /etc/grafana/grafana.ini
+              subPath: grafana.ini  # Monta apenas o arquivo necessário
             - name: grafana-data
               mountPath: /var/lib/grafana
           resources:

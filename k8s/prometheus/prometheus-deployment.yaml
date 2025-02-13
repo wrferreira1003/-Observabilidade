@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus
+  namespace: observability
 spec:
   replicas: 1
   selector:
@@ -15,9 +16,12 @@ spec:
       containers:
         - name: prometheus
           image: prom/prometheus:latest
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"  # Configuração correta
           volumeMounts:
             - name: prometheus-config
               mountPath: /etc/prometheus
+              readOnly: true # Não permite que o container modifique o arquivo
           resources:
             requests:
               memory: "64Mi"
@@ -29,3 +33,4 @@ spec:
         - name: prometheus-config
           configMap:
             name: prometheus-config
+
